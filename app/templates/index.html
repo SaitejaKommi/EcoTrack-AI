@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CarbonWise AI - Personal Carbon Intelligence Platform</title>
+    <meta name="description" content="CarbonWise AI helps individuals measure, understand, predict, and reduce their carbon footprint through simple actions, interactive simulations, and personalized AI insights.">
+    
+    <!-- Modern Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap Icons for modern vector glyphs -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- Main Custom CSS -->
+    <link rel="stylesheet" href="/static/css/styles.css">
+    
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+</head>
+<body class="theme-dark">
+
+    <!-- Screen Reader Skip Link -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <!-- Top Accessible Bar -->
+    <div class="accessibility-bar" role="toolbar" aria-label="Accessibility controls">
+        <div class="bar-container">
+            <span class="bar-title"><i class="bi bi-universal-access"></i> Accessibility Menu</span>
+            <div class="controls-group">
+                <button id="btn-toggle-contrast" class="btn-a11y" aria-pressed="false" title="Toggle High Contrast Mode">
+                    <i class="bi bi-circle-half"></i> Contrast
+                </button>
+                <button id="btn-toggle-motion" class="btn-a11y" aria-pressed="false" title="Toggle Reduced Motion Mode">
+                    <i class="bi bi-eye-slash-fill"></i> Motion
+                </button>
+                <div class="font-sizer" role="group" aria-label="Font size controls">
+                    <button id="btn-font-dec" class="btn-a11y" title="Decrease Text Size">A-</button>
+                    <button id="btn-font-reset" class="btn-a11y" title="Reset Text Size">A</button>
+                    <button id="btn-font-inc" class="btn-a11y" title="Increase Text Size">A+</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Header -->
+    <header class="main-header">
+        <div class="header-container">
+            <div class="logo-area">
+                <div class="logo-icon" aria-hidden="true">
+                    <i class="bi bi-globe-americas"></i>
+                </div>
+                <span class="logo-text">CarbonWise <span>AI</span></span>
+            </div>
+            
+            <nav class="main-nav" aria-label="Primary navigation">
+                <!-- Logged in state views -->
+                <ul id="nav-auth-links" class="nav-links">
+                    <li class="user-welcome-text" id="user-greeting">Welcome, Guest</li>
+                    <li><button id="btn-logout" class="btn-nav-logout"><i class="bi bi-box-arrow-right"></i> Log Out</button></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Global ARIA Live region for dynamic screen reader messages -->
+    <div id="a11y-announcer" class="sr-only" aria-live="polite"></div>
+
+    <!-- Primary Main Wrapper -->
+    <main id="main-content" tabindex="-1">
+        
+        <!-- ================= AUTHENTICATION PORTAL VIEW ================= -->
+        <section id="view-auth" class="auth-section">
+            <div class="auth-card-container">
+                <div class="auth-header-tabs">
+                    <button id="tab-login" class="auth-tab active" aria-selected="true" role="tab">Sign In</button>
+                    <button id="tab-register" class="auth-tab" aria-selected="false" role="tab">Create Account</button>
+                </div>
+                
+                <!-- Login Panel -->
+                <div id="panel-login" class="auth-panel" role="tabpanel">
+                    <h1 class="auth-title">Welcome to CarbonWise AI</h1>
+                    <p class="auth-subtitle">Log in to track, predict, and lower your daily carbon impact.</p>
+                    
+                    <form id="form-login" novalidate>
+                        <div class="input-group">
+                            <label for="login-email">Email Address</label>
+                            <input type="email" id="login-email" required autocomplete="email" placeholder="you@example.com">
+                            <span class="error-msg" id="err-login-email" aria-live="polite"></span>
+                        </div>
+                        <div class="input-group">
+                            <label for="login-password">Password</label>
+                            <input type="password" id="login-password" required autocomplete="current-password" placeholder="••••••••">
+                            <span class="error-msg" id="err-login-password" aria-live="polite"></span>
+                        </div>
+                        <button type="submit" class="btn-primary">Sign In <i class="bi bi-arrow-right"></i></button>
+                    </form>
+                </div>
+
+                <!-- Registration Panel -->
+                <div id="panel-register" class="auth-panel hidden" role="tabpanel">
+                    <h2 class="auth-title">Begin Your Journey</h2>
+                    <p class="auth-subtitle">Gain customized goals, dynamic forecasts, and earn milestones.</p>
+                    
+                    <form id="form-register" novalidate>
+                        <div class="input-group">
+                            <label for="reg-username">Username</label>
+                            <input type="text" id="reg-username" required autocomplete="username" minlength="3" placeholder="e.g. EcoWarrior">
+                            <span class="error-msg" id="err-reg-username" aria-live="polite"></span>
+                        </div>
+                        <div class="input-group">
+                            <label for="reg-email">Email Address</label>
+                            <input type="email" id="reg-email" required autocomplete="email" placeholder="you@example.com">
+                            <span class="error-msg" id="err-reg-email" aria-live="polite"></span>
+                        </div>
+                        <div class="input-group">
+                            <label for="reg-password">Password (min 6 characters)</label>
+                            <input type="password" id="reg-password" required autocomplete="new-password" minlength="6" placeholder="••••••••">
+                            <span class="error-msg" id="err-reg-password" aria-live="polite"></span>
+                        </div>
+                        <button type="submit" class="btn-primary">Create Account <i class="bi bi-person-plus-fill"></i></button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= MAIN DASHBOARD CONTAINER ================= -->
+        <section id="view-dashboard" class="dashboard-section hidden">
+            
+            <!-- Dashboard Subheader Summary Grid -->
+            <div class="dashboard-hero">
+                <div class="hero-left">
+                    <h1 class="hero-title">Your Carbon Intelligence Command</h1>
+                    <p class="hero-desc">Measure your impacts, simulate scenarios, and review tailored AI coaching steps.</p>
+                </div>
+                <div class="hero-right">
+                    <!-- Streak Widget -->
+                    <div class="streak-card" id="streak-card" title="Consecutive days logging footprints or goals">
+                        <div class="streak-icon"><i class="bi bi-fire"></i></div>
+                        <div class="streak-details">
+                            <span class="streak-num" id="lbl-streak-value">0</span>
+                            <span class="streak-lbl">Day Streak</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Dashboard Layout Grid -->
+            <div class="dashboard-grid">
+                
+                <!-- Left Column: inputs and sliders -->
+                <div class="grid-col-left">
+                    
+                    <!-- 1. Carbon footprint Calculator Card -->
+                    <article class="card form-card">
+                        <div class="card-header">
+                            <h2 class="card-heading"><i class="bi bi-calculator-fill text-green"></i> Carbon Footprint Calculator</h2>
+                            <span class="card-subheading">Update your monthly details to recalculate your Eco Score</span>
+                        </div>
+                        
+                        <form id="form-calculator">
+                            <!-- Transportation fieldset -->
+                            <fieldset class="fieldset-group">
+                                <legend class="fieldset-legend"><i class="bi bi-car-front-fill"></i> Transportation Habits</legend>
+                                <div class="field-grid">
+                                    <div class="input-group">
+                                        <label for="calc-gas-car">Petrol / Diesel Car (km/mo)</label>
+                                        <input type="number" id="calc-gas-car" min="0" value="0">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="calc-electric-car">Electric Vehicle (km/mo)</label>
+                                        <input type="number" id="calc-electric-car" min="0" value="0">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="calc-transit">Public Transport (km/mo)</label>
+                                        <input type="number" id="calc-transit" min="0" value="0">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="calc-flight">Flights / Travel (km/mo)</label>
+                                        <input type="number" id="calc-flight" min="0" value="0">
+                                    </div>
+                                </div>
+                            </fieldset>
+                            
+                            <!-- Energy fieldset -->
+                            <fieldset class="fieldset-group">
+                                <legend class="fieldset-legend"><i class="bi bi-lightning-charge-fill"></i> Home Energy Consumption</legend>
+                                <div class="field-grid">
+                                    <div class="input-group">
+                                        <label for="calc-grid-kwh">Grid Electricity (kWh/mo)</label>
+                                        <input type="number" id="calc-grid-kwh" min="0" value="0">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="calc-clean-kwh">Clean / Solar Energy (kWh/mo)</label>
+                                        <input type="number" id="calc-clean-kwh" min="0" value="0">
+                                    </div>
+                                </div>
+                            </fieldset>
+
+                            <!-- Lifestyle details -->
+                            <div class="field-split-grid">
+                                <div class="input-group">
+                                    <label for="calc-diet">Dietary Practice</label>
+                                    <select id="calc-diet">
+                                        <option value="meat_heavy">Heavy Meat Consumer</option>
+                                        <option value="balanced" selected>Average Balanced Diet</option>
+                                        <option value="vegetarian">Vegetarian Diet</option>
+                                        <option value="vegan">Vegan Diet</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label for="calc-shopping">Shopping / Purchases</label>
+                                    <select id="calc-shopping">
+                                        <option value="high_shopper">Frequent / Brand Purchases</option>
+                                        <option value="average_shopper" selected>Occasional / Balanced Purchases</option>
+                                        <option value="minimalist">Secondhand / Repair / Minimalist</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn-success"><i class="bi bi-check-circle-fill"></i> Save Calculation</button>
+                        </form>
+                    </article>
+
+                    <!-- 2. Carbon Reduction Simulator Card -->
+                    <article class="card simulator-card">
+                        <div class="card-header">
+                            <h2 class="card-heading"><i class="bi bi-sliders text-cyan"></i> Carbon Reduction Simulator</h2>
+                            <span class="card-subheading">Slide knobs to dynamically project impacts in real time</span>
+                        </div>
+                        
+                        <div class="simulator-body" id="simulator-container">
+                            <div class="slider-group">
+                                <div class="slider-labels">
+                                    <label for="sim-transit">Shift gas-car commutes to transit</label>
+                                    <span class="val-badge" id="lbl-sim-transit">0%</span>
+                                </div>
+                                <input type="range" id="sim-transit" min="0" max="100" value="0" class="slider-input">
+                            </div>
+                            
+                            <div class="slider-group">
+                                <div class="slider-labels">
+                                    <label for="sim-diet">Cut meat consumption</label>
+                                    <span class="val-badge" id="lbl-sim-diet">0%</span>
+                                </div>
+                                <input type="range" id="sim-diet" min="0" max="100" value="0" class="slider-input">
+                            </div>
+
+                            <div class="slider-group">
+                                <div class="slider-labels">
+                                    <label for="sim-energy">Switch electricity to Clean energy</label>
+                                    <span class="val-badge" id="lbl-sim-energy">0%</span>
+                                </div>
+                                <input type="range" id="sim-energy" min="0" max="100" value="0" class="slider-input">
+                            </div>
+
+                            <!-- Simulator visual outputs -->
+                            <div class="sim-outputs-grid">
+                                <div class="sim-metric">
+                                    <span class="sim-metric-lbl">Projected Emissions</span>
+                                    <span class="sim-metric-val text-cyan" id="lbl-sim-projected">0.0 kg</span>
+                                </div>
+                                <div class="sim-metric">
+                                    <span class="sim-metric-lbl">Potential Reduction</span>
+                                    <span class="sim-metric-val text-green" id="lbl-sim-reduction">0.0 kg (0%)</span>
+                                </div>
+                                <div class="sim-metric">
+                                    <span class="sim-metric-lbl">Projected Eco Score</span>
+                                    <span class="sim-metric-val text-orange" id="lbl-sim-score">0 / 100</span>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                </div>
+
+                <!-- Right Column: Visualizations and gamifications -->
+                <div class="grid-col-right">
+                    
+                    <!-- 3. Primary Scorecard Card -->
+                    <article class="card score-card">
+                        <div class="card-header">
+                            <h2 class="card-heading"><i class="bi bi-speedometer2 text-orange"></i> Your Eco Scorecard</h2>
+                        </div>
+                        
+                        <div class="scorecard-body">
+                            <!-- Circular Score Widget -->
+                            <div class="score-circle-container">
+                                <div class="score-circle">
+                                    <span class="score-num" id="lbl-dashboard-score">--</span>
+                                    <span class="score-max">/ 100</span>
+                                </div>
+                                <div class="score-analysis" id="lbl-score-explanation">
+                                    Calculate your carbon footprint to receive your Eco Score!
+                                </div>
+                            </div>
+
+                            <!-- Interactive Score breakdown parameters -->
+                            <div class="score-breakdown">
+                                <div class="breakdown-bar-item">
+                                    <div class="bar-lbls"><span>Transport Score</span><span id="lbl-cat-score-transport">--%</span></div>
+                                    <div class="bar-container-bg"><div class="bar-fill bg-transport" id="bar-fill-transport" style="width: 0%"></div></div>
+                                </div>
+                                <div class="breakdown-bar-item">
+                                    <div class="bar-lbls"><span>Energy Score</span><span id="lbl-cat-score-energy">--%</span></div>
+                                    <div class="bar-container-bg"><div class="bar-fill bg-energy" id="bar-fill-energy" style="width: 0%"></div></div>
+                                </div>
+                                <div class="breakdown-bar-item">
+                                    <div class="bar-lbls"><span>Food Score</span><span id="lbl-cat-score-food">--%</span></div>
+                                    <div class="bar-container-bg"><div class="bar-fill bg-food" id="bar-fill-food" style="width: 0%"></div></div>
+                                </div>
+                                <div class="breakdown-bar-item">
+                                    <div class="bar-lbls"><span>Consumption Score</span><span id="lbl-cat-score-consumption">--%</span></div>
+                                    <div class="bar-container-bg"><div class="bar-fill bg-consumption" id="bar-fill-consumption" style="width: 0%"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- 4. Progress and Forecast Charts Card -->
+                    <article class="card chart-card">
+                        <div class="card-header">
+                            <h2 class="card-heading"><i class="bi bi-graph-up-arrow text-green"></i> Carbon Projections & History</h2>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <canvas id="chart-history" height="200" aria-label="Line chart mapping historical carbon totals and predictions" role="img"></canvas>
+                        </div>
+                        
+                        <div class="prediction-explanation-panel hidden" id="prediction-panel">
+                            <span class="panel-tag"><i class="bi bi-cpu-fill"></i> AI Projection Reasoning</span>
+                            <p class="panel-body-text" id="lbl-prediction-text">Calculating trends...</p>
+                        </div>
+                    </article>
+
+                    <!-- 5. AI Sustainability Coach Insights -->
+                    <article class="card coach-card">
+                        <div class="card-header">
+                            <h2 class="card-heading"><i class="bi bi-chat-left-quote-fill text-yellow"></i> AI Sustainability Coach</h2>
+                            <button id="btn-refresh-coach" class="btn-refresh" title="Query coach for updated insights"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+                        </div>
+                        
+                        <div id="coach-insights-loading" class="loading-state hidden">
+                            <div class="spinner"></div>
+                            <p>Consulting Gemini AI Coach...</p>
+                        </div>
+
+                        <div id="coach-content-panel">
+                            <!-- Direct AI insight bullet lists -->
+                            <div class="insights-section">
+                                <h3 class="subsection-title">Coach Insights</h3>
+                                <ul class="insight-list" id="lst-coach-insights">
+                                    <li>No calculator logs registered. Enter details above to unlock insights.</li>
+                                </ul>
+                            </div>
+
+                            <div class="goals-section">
+                                <h3 class="subsection-title">Weekly Goals</h3>
+                                <div class="goals-grid" id="lst-weekly-goals">
+                                    <!-- Goal cards render dynamically here -->
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- 6. Smart Action Planner -->
+                    <article class="card planner-card">
+                        <div class="card-header">
+                            <h2 class="card-heading"><i class="bi bi-calendar-check-fill text-purple"></i> Smart Action Planner</h2>
+                        </div>
+                        
+                        <div class="planner-tabs" role="tablist" aria-label="Action schedules">
+                            <button id="tab-plan-daily" class="plan-tab active" aria-selected="true" role="tab">Daily</button>
+                            <button id="tab-plan-weekly" class="plan-tab" aria-selected="false" role="tab">Weekly</button>
+                            <button id="tab-plan-monthly" class="plan-tab" aria-selected="false" role="tab">Monthly</button>
+                        </div>
+
+                        <div class="planner-body">
+                            <ul class="action-check-list" id="lst-action-plan">
+                                <li>Calculator details required to generate custom prioritizations.</li>
+                            </ul>
+                        </div>
+                    </article>
+
+                    <!-- 7. Achievements & Badges Card -->
+                    <article class="card achievements-card">
+                        <div class="card-header">
+                            <h2 class="card-heading"><i class="bi bi-award-fill text-orange"></i> Achievements & Badges</h2>
+                        </div>
+                        
+                        <div class="achievements-body">
+                            <div class="badges-grid" id="lst-earned-badges">
+                                <!-- Badges display dynamically here -->
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- 8. Interactive Telemetry Analytics Card -->
+                    <article class="card analytics-card">
+                        <div class="card-header">
+                            <h2 class="card-heading"><i class="bi bi-bar-chart-fill text-green"></i> Interaction Telemetry Metrics</h2>
+                        </div>
+                        
+                        <div class="analytics-metrics-grid">
+                            <div class="metric-item">
+                                <span class="metric-num" id="lbl-stat-calcs">0</span>
+                                <span class="metric-lbl">Calculator Inputs</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-num" id="lbl-stat-sims">0</span>
+                                <span class="metric-lbl">Simulations Run</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-num" id="lbl-stat-goals">0</span>
+                                <span class="metric-lbl">Goals Cleared</span>
+                            </div>
+                            <div class="metric-item text-green-glow">
+                                <span class="metric-num" id="lbl-stat-savings">0 kg</span>
+                                <span class="metric-lbl">Carbon Saved</span>
+                            </div>
+                        </div>
+                    </article>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer Area -->
+    <footer class="main-footer">
+        <div class="footer-container">
+            <span class="footer-text">© 2026 CarbonWise AI. Formulated with Google Gemini.</span>
+            <span class="footer-links">
+                <a href="#view-dashboard" class="footer-link">Dashboard</a>
+                <a href="#main-content" class="footer-link">Back to Top</a>
+            </span>
+        </div>
+    </footer>
+
+    <!-- App Frontend Script files -->
+    <script src="/static/js/api.js" defer></script>
+    <script src="/static/js/charts.js" defer></script>
+    <script src="/static/js/ui.js" defer></script>
+    <script src="/static/js/app.js" defer></script>
+</body>
+</html>
