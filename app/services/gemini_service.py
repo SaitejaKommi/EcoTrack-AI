@@ -19,7 +19,7 @@ class GeminiService:
     # Cache fields for performance optimization (Phase 8: Performance Caching)
     _insights_cache: Dict[str, tuple] = {}
     _action_plan_cache: Dict[str, tuple] = {}
-    _CACHE_TTL = 300  # 5 minutes in seconds
+    _CACHE_TTL = 600  # Optimized TTL cache limit to 10 minutes (600 seconds) for higher performance
 
     @classmethod
     def _make_cache_key(cls, user_id: str, footprint: Dict[str, Any]) -> str:
