@@ -3,9 +3,10 @@ Carbon Footprint Blueprint Routing for CarbonWise AI.
 Exposes endpoints for calculating footprints, checking logs, simulations, and future predictions.
 """
 
-from flask import Blueprint, request, jsonify, session, Response
+from flask import Blueprint, request, session, Response
 from typing import Tuple, Any
 from app.routes.auth import login_required, csrf_protect
+from app.utils.response import success_response, error_response
 from app.models.schemas import validate_carbon_input, validate_simulation
 from app.services.carbon_service import CarbonService
 from app.services.gemini_service import GeminiService
@@ -23,11 +24,7 @@ def calculate() -> Tuple[Response, int]:
     
     is_valid, err, cleaned = validate_carbon_input(data)
     if not is_valid:
-        return jsonify({
-            "status": "error",
-            "code": 400,
-            "message": err
-        }), 400
+        return error_response(err, 400)
         
     # Process emissions, update streak and award badge checks
     result = CarbonService.save_calculation(user_id, cleaned)
@@ -39,12 +36,7 @@ def calculate() -> Tuple[Response, int]:
         metadata={"total_emissions_kg": result["emissions"]["total"], "score": result["eco_score"]}
     )
     
-    return jsonify({
-        "status": "success",
-        "code": 200,
-        "message": "Calculation recorded successfully.",
-        "data": result
-    }), 200
+    return success_response("Calculation recorded successfully.", result, 200)
 
 @carbon_bp.route('/history', methods=['GET'])
 @login_required
@@ -53,11 +45,7 @@ def get_history() -> Tuple[Response, int]:
     user_id = session['user_id']
     history = CarbonService.get_user_history(user_id)
     
-    return jsonify({
-        "status": "success",
-        "code": 200,
-        "data": history
-    }), 200
+    return success_response("History retrieved successfully.", history, 200)
 
 @carbon_bp.route('/simulate', methods=['POST'])
 @login_required
@@ -69,11 +57,7 @@ def simulate() -> Tuple[Response, int]:
     
     is_valid, err, cleaned = validate_simulation(data)
     if not is_valid:
-        return jsonify({
-            "status": "error",
-            "code": 400,
-            "message": err
-        }), 400
+        return error_response(err, 400)
         
     result = CarbonService.simulate_reduction(cleaned)
     
@@ -89,11 +73,7 @@ def simulate() -> Tuple[Response, int]:
         }
     )
     
-    return jsonify({
-        "status": "success",
-        "code": 200,
-        "data": result
-    }), 200
+    return success_response("Simulation recorded successfully.", result, 200)
 
 @carbon_bp.route('/predict', methods=['GET'])
 @login_required
@@ -103,15 +83,7 @@ def predict() -> Tuple[Response, int]:
     history = CarbonService.get_user_history(user_id, limit=5)
     
     if not history:
-        return jsonify({
-            "status": "error",
-            "code": 400,
-            "message": "No calculator entries found. Please log a calculation first to forecast trends."
-        }), 400
+        return error_response("No calculator entries found. Please log a calculation first to forecast trends.", 400)
         
     result = GeminiService.predict_future_footprint(history)
-    return jsonify({
-        "status": "success",
-        "code": 200,
-        "data": result
-    }), 200
+    return success_response("Predictions generated successfully.", result, 200)

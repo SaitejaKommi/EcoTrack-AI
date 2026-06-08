@@ -76,3 +76,20 @@ BADGE_CONFIGS: Dict[str, Dict[str, str]] = {
         "icon": "fire"
     }
 }
+
+# --- BUSINESS CALCULATION CONSTANTS ---
+# Standard multiplier constants
+MEALS_PER_MONTH: float = 90.0
+DEFAULT_MEAT_DIET_EMISSIONS: float = 1.5
+DEFAULT_AVERAGE_SHOPPER_EMISSIONS: float = 75.0
+
+# Eco score scaling factors
+SCORE_SCALING_OFFSET: float = 100.0
+SCORE_SCALING_MULTIPLIER: float = 50.0
+
+# Gamification and badge threshold margins
+CLEAN_TRAVEL_BADGE_THRESHOLD: float = 0.8
+CLEAN_ENERGY_BADGE_THRESHOLD: float = 0.8
+ECO_WARRIOR_BADGE_THRESHOLD: float = 85.0
+STREAK_BUILDER_BADGE_THRESHOLD: int = 7
+

@@ -3,9 +3,10 @@ AI Coach Blueprint Routing for CarbonWise AI.
 Serves personalized recommendations, AI goals, and tracks achievements.
 """
 
-from flask import Blueprint, jsonify, session, request, Response
+from flask import Blueprint, session, request, Response
 from typing import Tuple
 from app.routes.auth import login_required, csrf_protect
+from app.utils.response import success_response, error_response
 from app.services.carbon_service import CarbonService
 from app.services.gemini_service import GeminiService
 from app.services.analytics_service import AnalyticsService
@@ -20,22 +21,14 @@ def get_insights() -> Tuple[Response, int]:
     history = CarbonService.get_user_history(user_id, limit=1)
     
     if not history:
-        return jsonify({
-            "status": "error",
-            "code": 400,
-            "message": "Please log a carbon calculation first to unlock personalized AI insights."
-        }), 400
+        return error_response("Please log a carbon calculation first to unlock personalized AI insights.", 400)
         
     latest_footprint = history[0]
     # Fetch user username from session
     latest_footprint["username"] = session.get("username", "Eco-Warrior")
     
     insights = GeminiService.generate_coaching_insights(user_id, latest_footprint)
-    return jsonify({
-        "status": "success",
-        "code": 200,
-        "data": insights
-    }), 200
+    return success_response("Coach insights retrieved successfully.", insights, 200)
 
 @coach_bp.route('/plan', methods=['GET'])
 @login_required
@@ -45,19 +38,11 @@ def get_action_plan() -> Tuple[Response, int]:
     history = CarbonService.get_user_history(user_id, limit=1)
     
     if not history:
-        return jsonify({
-            "status": "error",
-            "code": 400,
-            "message": "Please log a carbon calculation first to construct an actionable reduction roadmap."
-        }), 400
+        return error_response("Please log a carbon calculation first to construct an actionable reduction roadmap.", 400)
         
     latest_footprint = history[0]
     plan = GeminiService.generate_action_plan(user_id, latest_footprint)
-    return jsonify({
-        "status": "success",
-        "code": 200,
-        "data": plan
-    }), 200
+    return success_response("Action plan retrieved successfully.", plan, 200)
 
 @coach_bp.route('/goals/complete', methods=['POST'])
 @login_required
@@ -71,11 +56,7 @@ def complete_goal() -> Tuple[Response, int]:
     carbon_saved = data.get("carbon_saved_kg", 0.0)
     
     if not goal_title:
-        return jsonify({
-            "status": "error",
-            "code": 400,
-            "message": "Goal title is required to mark a goal completed."
-        }), 400
+        return error_response("Goal title is required to mark a goal completed.", 400)
         
     # Standardize carbon saved as positive float
     try:
@@ -95,9 +76,4 @@ def complete_goal() -> Tuple[Response, int]:
     
     # Fetch updated user telemetry summary
     summary = AnalyticsService.get_user_analytics_summary(user_id)
-    return jsonify({
-        "status": "success",
-        "code": 200,
-        "message": f"Goal '{goal_title}' marked completed. Carbon savings tracked!",
-        "data": summary
-    }), 200
+    return success_response(f"Goal '{goal_title}' marked completed. Carbon savings tracked!", summary, 200)

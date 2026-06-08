@@ -7,7 +7,12 @@ storing calculator history, running simulation scenarios, and evaluation of badg
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Tuple
 from app.db import get_db
-from app.constants import EMISSION_FACTORS, SCORE_WEIGHTS, CATEGORY_BASELINES
+from app.constants import (
+    EMISSION_FACTORS, SCORE_WEIGHTS, CATEGORY_BASELINES,
+    MEALS_PER_MONTH, DEFAULT_MEAT_DIET_EMISSIONS, DEFAULT_AVERAGE_SHOPPER_EMISSIONS,
+    SCORE_SCALING_OFFSET, SCORE_SCALING_MULTIPLIER, CLEAN_TRAVEL_BADGE_THRESHOLD,
+    CLEAN_ENERGY_BADGE_THRESHOLD, ECO_WARRIOR_BADGE_THRESHOLD
+)
 from app.services.user_service import UserService
 
 class CarbonService:
@@ -32,15 +37,15 @@ class CarbonService:
         clean_energy = e.get("clean_kwh", 0.0) * EMISSION_FACTORS["energy"]["clean_energy"]
         energy_total = grid_electricity + clean_energy
 
-        # 3. Food calculations (diet scale per month based on 90 meals)
+        # 3. Food calculations (diet scale per month based on meals per month)
         f = data.get("food", {})
         diet_type = f.get("diet", "balanced")
-        food_total = EMISSION_FACTORS["food"].get(diet_type, 1.5) * 90.0
+        food_total = EMISSION_FACTORS["food"].get(diet_type, DEFAULT_MEAT_DIET_EMISSIONS) * MEALS_PER_MONTH
 
         # 4. Consumption calculations
         c = data.get("consumption", {})
         shopping_habit = c.get("shopping_habit", "average_shopper")
-        consumption_total = EMISSION_FACTORS["consumption"].get(shopping_habit, 75.0)
+        consumption_total = EMISSION_FACTORS["consumption"].get(shopping_habit, DEFAULT_AVERAGE_SHOPPER_EMISSIONS)
 
         return {
             "transport": round(transport_total, 2),
@@ -62,9 +67,9 @@ class CarbonService:
 
         for category, baseline in CATEGORY_BASELINES.items():
             user_emissions = emissions.get(category, 0.0)
-            # Math: 100 - (user_emissions / baseline) * 50
-            score = 100.0 - (user_emissions / baseline) * 50.0
-            score = max(0.0, min(100.0, score))
+            # Math: SCORE_SCALING_OFFSET - (user_emissions / baseline) * SCORE_SCALING_MULTIPLIER
+            score = SCORE_SCALING_OFFSET - (user_emissions / baseline) * SCORE_SCALING_MULTIPLIER
+            score = max(0.0, min(SCORE_SCALING_OFFSET, score))
             category_scores[category] = round(score, 2)
             
             # Apply weights
@@ -88,7 +93,7 @@ class CarbonService:
         total_land_travel = gas_car + electric_car + transit
         if total_land_travel > 0:
             clean_share = (electric_car + transit) / total_land_travel
-            if clean_share >= 0.8:
+            if clean_share >= CLEAN_TRAVEL_BADGE_THRESHOLD:
                 if UserService.award_badge(user_id, "transit_hero"):
                     awarded_badges.append("transit_hero")
 
@@ -106,12 +111,12 @@ class CarbonService:
         total_energy = grid + clean
         if total_energy > 0:
             clean_share = clean / total_energy
-            if clean_share >= 0.8:
+            if clean_share >= CLEAN_ENERGY_BADGE_THRESHOLD:
                 if UserService.award_badge(user_id, "energy_wizard"):
                     awarded_badges.append("energy_wizard")
 
         # 4. Check Eco Warrior
-        if eco_score >= 85.0:
+        if eco_score >= ECO_WARRIOR_BADGE_THRESHOLD:
             if UserService.award_badge(user_id, "eco_warrior"):
                 awarded_badges.append("eco_warrior")
 
@@ -213,7 +218,7 @@ class CarbonService:
         food_base = sim_emissions["food"]
         # Shifting diet: Veg/Vegan factor averages ~ 0.6. Meat average diet is 1.5, heavy is 3.0.
         # Reduction shifts food carbon down towards vegan level (0.4 * 90 = 36.0 kg)
-        target_food_min = EMISSION_FACTORS["food"]["vegan"] * 90.0
+        target_food_min = EMISSION_FACTORS["food"]["vegan"] * MEALS_PER_MONTH
         potential_diet_savings = max(0.0, food_base - target_food_min)
         sim_emissions["food"] = round(food_base - (potential_diet_savings * meat_red), 2)
 

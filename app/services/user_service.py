@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, List, Tuple
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.db import get_db
-from app.constants import BADGE_CONFIGS
+from app.constants import BADGE_CONFIGS, STREAK_BUILDER_BADGE_THRESHOLD
 
 class UserService:
     """Service class for user profiles, credentials, and gamification telemetry."""
@@ -142,7 +142,7 @@ class UserService:
         )
         
         # Proactively check streak milestone badge
-        if new_streak >= 7:
+        if new_streak >= STREAK_BUILDER_BADGE_THRESHOLD:
             UserService.award_badge(user_id, "streak_master")
             
         return new_streak

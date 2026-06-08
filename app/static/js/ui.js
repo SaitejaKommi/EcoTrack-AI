@@ -4,12 +4,39 @@
  */
 
 class CarbonWiseUI {
+    static DOM = {
+        announcer: null,
+        scoreLabel: null,
+        scoreDesc: null,
+        badgesGrid: null,
+        insightsList: null,
+        goalsGrid: null,
+        actionPlanList: null,
+        statCalcs: null,
+        statSims: null,
+        statGoals: null,
+        statSavings: null
+    };
+
+    static initDOM() {
+        this.DOM.announcer = document.getElementById('a11y-announcer');
+        this.DOM.scoreLabel = document.getElementById('lbl-dashboard-score');
+        this.DOM.scoreDesc = document.getElementById('lbl-score-explanation');
+        this.DOM.badgesGrid = document.getElementById('lst-earned-badges');
+        this.DOM.insightsList = document.getElementById('lst-coach-insights');
+        this.DOM.goalsGrid = document.getElementById('lst-weekly-goals');
+        this.DOM.actionPlanList = document.getElementById('lst-action-plan');
+        this.DOM.statCalcs = document.getElementById('lbl-stat-calcs');
+        this.DOM.statSims = document.getElementById('lbl-stat-sims');
+        this.DOM.statGoals = document.getElementById('lbl-stat-goals');
+        this.DOM.statSavings = document.getElementById('lbl-stat-savings');
+    }
     
     /**
      * Announces a message to screen readers using the ARIA live region.
      */
     static announce(message) {
-        const announcer = document.getElementById('a11y-announcer');
+        const announcer = this.DOM.announcer || document.getElementById('a11y-announcer');
         if (announcer) {
             announcer.textContent = '';
             // Timeout ensures screen readers catch the layout adjustment
@@ -23,8 +50,8 @@ class CarbonWiseUI {
      * Renders the user's overall Eco Scorecard.
      */
     static updateScorecard(score, categoryScores) {
-        const scoreLbl = document.getElementById('lbl-dashboard-score');
-        const descLbl = document.getElementById('lbl-score-explanation');
+        const scoreLbl = this.DOM.scoreLabel || document.getElementById('lbl-dashboard-score');
+        const descLbl = this.DOM.scoreDesc || document.getElementById('lbl-score-explanation');
         
         if (!scoreLbl) return;
 
@@ -66,7 +93,7 @@ class CarbonWiseUI {
      * Renders user badges list highlighting unlocked ones.
      */
     static updateBadges(unlockedBadgesList, badgeConfigs) {
-        const grid = document.getElementById('lst-earned-badges');
+        const grid = this.DOM.badgesGrid || document.getElementById('lst-earned-badges');
         if (!grid) return;
         
         grid.innerHTML = '';
@@ -98,8 +125,8 @@ class CarbonWiseUI {
      * Renders dynamic sustainability coaching bullet points and weekly tasks.
      */
     static updateCoachPanel(insightsData, completeGoalCallback) {
-        const insightsList = document.getElementById('lst-coach-insights');
-        const goalsGrid = document.getElementById('lst-weekly-goals');
+        const insightsList = this.DOM.insightsList || document.getElementById('lst-coach-insights');
+        const goalsGrid = this.DOM.goalsGrid || document.getElementById('lst-weekly-goals');
         
         if (!insightsList || !goalsGrid) return;
         
@@ -184,7 +211,7 @@ class CarbonWiseUI {
      * Renders lists of prioritized daily, weekly, or monthly action steps.
      */
     static updateActionPlan(planData, activeSchedule) {
-        const list = document.getElementById('lst-action-plan');
+        const list = this.DOM.actionPlanList || document.getElementById('lst-action-plan');
         if (!list) return;
         
         list.innerHTML = '';
@@ -221,10 +248,10 @@ class CarbonWiseUI {
      * Refreshes dashboard scorecard statistics totals.
      */
     static updateAnalyticsSummary(summaryData) {
-        const calcs = document.getElementById('lbl-stat-calcs');
-        const sims = document.getElementById('lbl-stat-sims');
-        const goals = document.getElementById('lbl-stat-goals');
-        const savings = document.getElementById('lbl-stat-savings');
+        const calcs = this.DOM.statCalcs || document.getElementById('lbl-stat-calcs');
+        const sims = this.DOM.statSims || document.getElementById('lbl-stat-sims');
+        const goals = this.DOM.statGoals || document.getElementById('lbl-stat-goals');
+        const savings = this.DOM.statSavings || document.getElementById('lbl-stat-savings');
         
         if (calcs) calcs.textContent = summaryData.calculations_run || 0;
         if (sims) sims.textContent = summaryData.simulations_run || 0;

@@ -38,6 +38,117 @@ const BADGE_CONFIGS = {
     }
 };
 
+// Centralized DOM caching namespace to eliminate duplicate queries
+const DOM = {
+    viewAuth: null,
+    viewDashboard: null,
+    userGreeting: null,
+    streakValue: null,
+    contrastBtn: null,
+    motionBtn: null,
+    fontInc: null,
+    fontDec: null,
+    fontReset: null,
+    tabLogin: null,
+    tabRegister: null,
+    panelLogin: null,
+    panelRegister: null,
+    formRegister: null,
+    regUsername: null,
+    regEmail: null,
+    regPassword: null,
+    errRegUsername: null,
+    errRegEmail: null,
+    errRegPassword: null,
+    formLogin: null,
+    loginEmail: null,
+    loginPassword: null,
+    errLoginEmail: null,
+    errLoginPassword: null,
+    btnLogout: null,
+    formCalculator: null,
+    btnRefreshCoach: null,
+    predictionPanel: null,
+    predictionText: null,
+    coachLoader: null,
+    coachPanel: null,
+    
+    // Inputs
+    calcGasCar: null,
+    calcElectricCar: null,
+    calcTransit: null,
+    calcFlight: null,
+    calcGridKwh: null,
+    calcCleanKwh: null,
+    calcDiet: null,
+    calcShopping: null,
+    
+    // Simulator
+    simTransit: null,
+    simDiet: null,
+    simEnergy: null,
+    simTransitLbl: null,
+    simDietLbl: null,
+    simEnergyLbl: null,
+    simProjected: null,
+    simReduction: null,
+    simScore: null,
+    
+    init() {
+        this.viewAuth = document.getElementById('view-auth');
+        this.viewDashboard = document.getElementById('view-dashboard');
+        this.userGreeting = document.getElementById('user-greeting');
+        this.streakValue = document.getElementById('lbl-streak-value');
+        this.contrastBtn = document.getElementById('btn-toggle-contrast');
+        this.motionBtn = document.getElementById('btn-toggle-motion');
+        this.fontInc = document.getElementById('btn-font-inc');
+        this.fontDec = document.getElementById('btn-font-dec');
+        this.fontReset = document.getElementById('btn-font-reset');
+        this.tabLogin = document.getElementById('tab-login');
+        this.tabRegister = document.getElementById('tab-register');
+        this.panelLogin = document.getElementById('panel-login');
+        this.panelRegister = document.getElementById('panel-register');
+        this.formRegister = document.getElementById('form-register');
+        this.regUsername = document.getElementById('reg-username');
+        this.regEmail = document.getElementById('reg-email');
+        this.regPassword = document.getElementById('reg-password');
+        this.errRegUsername = document.getElementById('err-reg-username');
+        this.errRegEmail = document.getElementById('err-reg-email');
+        this.errRegPassword = document.getElementById('err-reg-password');
+        this.formLogin = document.getElementById('form-login');
+        this.loginEmail = document.getElementById('login-email');
+        this.loginPassword = document.getElementById('login-password');
+        this.errLoginEmail = document.getElementById('err-login-email');
+        this.errLoginPassword = document.getElementById('err-login-password');
+        this.btnLogout = document.getElementById('btn-logout');
+        this.formCalculator = document.getElementById('form-calculator');
+        this.btnRefreshCoach = document.getElementById('btn-refresh-coach');
+        this.predictionPanel = document.getElementById('prediction-panel');
+        this.predictionText = document.getElementById('lbl-prediction-text');
+        this.coachLoader = document.getElementById('coach-insights-loading');
+        this.coachPanel = document.getElementById('coach-content-panel');
+        
+        this.calcGasCar = document.getElementById('calc-gas-car');
+        this.calcElectricCar = document.getElementById('calc-electric-car');
+        this.calcTransit = document.getElementById('calc-transit');
+        this.calcFlight = document.getElementById('calc-flight');
+        this.calcGridKwh = document.getElementById('calc-grid-kwh');
+        this.calcCleanKwh = document.getElementById('calc-clean-kwh');
+        this.calcDiet = document.getElementById('calc-diet');
+        this.calcShopping = document.getElementById('calc-shopping');
+        
+        this.simTransit = document.getElementById('sim-transit');
+        this.simDiet = document.getElementById('sim-diet');
+        this.simEnergy = document.getElementById('sim-energy');
+        this.simTransitLbl = document.getElementById('lbl-sim-transit');
+        this.simDietLbl = document.getElementById('lbl-sim-diet');
+        this.simEnergyLbl = document.getElementById('lbl-sim-energy');
+        this.simProjected = document.getElementById('lbl-sim-projected');
+        this.simReduction = document.getElementById('lbl-sim-reduction');
+        this.simScore = document.getElementById('lbl-sim-score');
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
@@ -46,6 +157,8 @@ document.addEventListener('DOMContentLoaded', () => {
  * Bootstraps the application state and event handlers.
  */
 async function initApp() {
+    DOM.init();
+    CarbonWiseUI.initDOM();
     setupAccessibilityControls();
     setupAuthListeners();
     setupDashboardListeners();
@@ -66,45 +179,39 @@ async function initApp() {
 
 // --- VIEW CONTROLLERS ---
 function showAuthView() {
-    document.getElementById('view-auth').classList.remove('hidden');
-    document.getElementById('view-dashboard').classList.add('hidden');
-    document.getElementById('user-greeting').textContent = 'Welcome, Guest';
+    DOM.viewAuth.classList.remove('hidden');
+    DOM.viewDashboard.classList.add('hidden');
+    DOM.userGreeting.textContent = 'Welcome, Guest';
 }
 
 function showDashboardView() {
-    document.getElementById('view-auth').classList.add('hidden');
-    document.getElementById('view-dashboard').classList.remove('hidden');
+    DOM.viewAuth.classList.add('hidden');
+    DOM.viewDashboard.classList.remove('hidden');
     if (currentUser) {
-        document.getElementById('user-greeting').textContent = `Welcome, ${currentUser.username}`;
+        DOM.userGreeting.textContent = `Welcome, ${currentUser.username}`;
     }
 }
 
 // --- ACCESSIBILITY CONFIGURATION ---
 function setupAccessibilityControls() {
-    const contrastBtn = document.getElementById('btn-toggle-contrast');
-    const motionBtn = document.getElementById('btn-toggle-motion');
-    const fontInc = document.getElementById('btn-font-inc');
-    const fontDec = document.getElementById('btn-font-dec');
-    const fontReset = document.getElementById('btn-font-reset');
-
     // Load user preferences from local storage
     if (localStorage.getItem('contrast') === 'enabled') {
         document.body.classList.add('high-contrast');
-        contrastBtn.setAttribute('aria-pressed', 'true');
+        DOM.contrastBtn.setAttribute('aria-pressed', 'true');
     }
     
     if (localStorage.getItem('motion') === 'reduced') {
         document.body.classList.add('reduced-motion');
-        motionBtn.setAttribute('aria-pressed', 'true');
+        DOM.motionBtn.setAttribute('aria-pressed', 'true');
     }
 
     let fontSizePct = parseInt(localStorage.getItem('fontSizePct')) || 100;
     document.documentElement.style.fontSize = `${fontSizePct}%`;
 
     // Contrast Toggle
-    contrastBtn.addEventListener('click', () => {
+    DOM.contrastBtn.addEventListener('click', () => {
         const active = document.body.classList.toggle('high-contrast');
-        contrastBtn.setAttribute('aria-pressed', active ? 'true' : 'false');
+        DOM.contrastBtn.setAttribute('aria-pressed', active ? 'true' : 'false');
         localStorage.setItem('contrast', active ? 'enabled' : 'disabled');
         CarbonWiseUI.announce(`High contrast mode ${active ? 'enabled' : 'disabled'}.`);
         
@@ -115,15 +222,15 @@ function setupAccessibilityControls() {
     });
 
     // Motion Toggle
-    motionBtn.addEventListener('click', () => {
+    DOM.motionBtn.addEventListener('click', () => {
         const active = document.body.classList.toggle('reduced-motion');
-        motionBtn.setAttribute('aria-pressed', active ? 'true' : 'false');
+        DOM.motionBtn.setAttribute('aria-pressed', active ? 'true' : 'false');
         localStorage.setItem('motion', active ? 'reduced' : 'normal');
         CarbonWiseUI.announce(`Reduced motion mode ${active ? 'enabled' : 'disabled'}.`);
     });
 
     // Font Sizing
-    fontInc.addEventListener('click', () => {
+    DOM.fontInc.addEventListener('click', () => {
         if (fontSizePct < 140) {
             fontSizePct += 10;
             document.documentElement.style.fontSize = `${fontSizePct}%`;
@@ -132,7 +239,7 @@ function setupAccessibilityControls() {
         }
     });
 
-    fontDec.addEventListener('click', () => {
+    DOM.fontDec.addEventListener('click', () => {
         if (fontSizePct > 80) {
             fontSizePct -= 10;
             document.documentElement.style.fontSize = `${fontSizePct}%`;
@@ -141,7 +248,7 @@ function setupAccessibilityControls() {
         }
     });
 
-    fontReset.addEventListener('click', () => {
+    DOM.fontReset.addEventListener('click', () => {
         fontSizePct = 100;
         document.documentElement.style.fontSize = '100%';
         localStorage.setItem('fontSizePct', fontSizePct);
@@ -151,69 +258,64 @@ function setupAccessibilityControls() {
 
 // --- EVENT HANDLERS ---
 function setupAuthListeners() {
-    const tabLogin = document.getElementById('tab-login');
-    const tabRegister = document.getElementById('tab-register');
-    const panelLogin = document.getElementById('panel-login');
-    const panelRegister = document.getElementById('panel-register');
-    
     // Auth Tab switching
-    tabLogin.addEventListener('click', () => {
-        tabLogin.classList.add('active');
-        tabLogin.setAttribute('aria-selected', 'true');
-        tabRegister.classList.remove('active');
-        tabRegister.setAttribute('aria-selected', 'false');
-        panelLogin.classList.remove('hidden');
-        panelRegister.classList.add('hidden');
+    DOM.tabLogin.addEventListener('click', () => {
+        DOM.tabLogin.classList.add('active');
+        DOM.tabLogin.setAttribute('aria-selected', 'true');
+        DOM.tabRegister.classList.remove('active');
+        DOM.tabRegister.setAttribute('aria-selected', 'false');
+        DOM.panelLogin.classList.remove('hidden');
+        DOM.panelRegister.classList.add('hidden');
     });
 
-    tabRegister.addEventListener('click', () => {
-        tabRegister.classList.add('active');
-        tabRegister.setAttribute('aria-selected', 'true');
-        tabLogin.classList.remove('active');
-        tabLogin.setAttribute('aria-selected', 'false');
-        panelRegister.classList.remove('hidden');
-        panelLogin.classList.add('hidden');
+    DOM.tabRegister.addEventListener('click', () => {
+        DOM.tabRegister.classList.add('active');
+        DOM.tabRegister.setAttribute('aria-selected', 'true');
+        DOM.tabLogin.classList.remove('active');
+        DOM.tabLogin.setAttribute('aria-selected', 'false');
+        DOM.panelRegister.classList.remove('hidden');
+        DOM.panelLogin.classList.add('hidden');
     });
 
     // Form Sign Up submit
-    document.getElementById('form-register').addEventListener('submit', async (e) => {
+    DOM.formRegister.addEventListener('submit', async (e) => {
         e.preventDefault();
         
         // Reset warnings
-        document.getElementById('err-reg-username').textContent = '';
-        document.getElementById('err-reg-email').textContent = '';
-        document.getElementById('err-reg-password').textContent = '';
+        DOM.errRegUsername.textContent = '';
+        DOM.errRegEmail.textContent = '';
+        DOM.errRegPassword.textContent = '';
         
-        const username = document.getElementById('reg-username').value;
-        const email = document.getElementById('reg-email').value;
-        const password = document.getElementById('reg-password').value;
+        const username = DOM.regUsername.value;
+        const email = DOM.regEmail.value;
+        const password = DOM.regPassword.value;
         
         try {
             await CarbonWiseAPI.register(username, email, password);
             CarbonWiseUI.announce("Registration successful. Please log in with your credentials.");
             alert("Account created! Please sign in.");
-            tabLogin.click();
+            DOM.tabLogin.click();
         } catch (err) {
             const msg = err.message || "Registration failed.";
             if (msg.toLowerCase().includes("username")) {
-                document.getElementById('err-reg-username').textContent = msg;
+                DOM.errRegUsername.textContent = msg;
             } else if (msg.toLowerCase().includes("email")) {
-                document.getElementById('err-reg-email').textContent = msg;
+                DOM.errRegEmail.textContent = msg;
             } else {
-                document.getElementById('err-reg-password').textContent = msg;
+                DOM.errRegPassword.textContent = msg;
             }
         }
     });
 
     // Form Login submit
-    document.getElementById('form-login').addEventListener('submit', async (e) => {
+    DOM.formLogin.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        document.getElementById('err-login-email').textContent = '';
-        document.getElementById('err-login-password').textContent = '';
+        DOM.errLoginEmail.textContent = '';
+        DOM.errLoginPassword.textContent = '';
         
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
+        const email = DOM.loginEmail.value;
+        const password = DOM.loginPassword.value;
         
         try {
             const response = await CarbonWiseAPI.login(email, password);
@@ -223,15 +325,15 @@ function setupAuthListeners() {
         } catch (err) {
             const msg = err.message || "Login failed.";
             if (msg.toLowerCase().includes("password")) {
-                document.getElementById('err-login-password').textContent = msg;
+                DOM.errLoginPassword.textContent = msg;
             } else {
-                document.getElementById('err-login-email').textContent = msg;
+                DOM.errLoginEmail.textContent = msg;
             }
         }
     });
 
     // Logout click
-    document.getElementById('btn-logout').addEventListener('click', async () => {
+    DOM.btnLogout.addEventListener('click', async () => {
         try {
             await CarbonWiseAPI.logout();
         } catch (e) {}
@@ -256,7 +358,7 @@ async function loadDashboardData() {
         const profileResponse = await CarbonWiseAPI.getProfile();
         if (profileResponse && profileResponse.data) {
             currentUser = profileResponse.data;
-            document.getElementById('lbl-streak-value').textContent = currentUser.streak || 0;
+            DOM.streakValue.textContent = currentUser.streak || 0;
             CarbonWiseUI.updateBadges(currentUser.badges, BADGE_CONFIGS);
         }
 
@@ -297,39 +399,39 @@ async function loadDashboardData() {
 function populateCalculatorInputs(inputs) {
     if (!inputs) return;
     
-    document.getElementById('calc-gas-car').value = inputs.transport.gas_car_km || 0;
-    document.getElementById('calc-electric-car').value = inputs.transport.electric_car_km || 0;
-    document.getElementById('calc-transit').value = inputs.transport.public_transit_km || 0;
-    document.getElementById('calc-flight').value = inputs.transport.flight_km || 0;
+    DOM.calcGasCar.value = inputs.transport.gas_car_km || 0;
+    DOM.calcElectricCar.value = inputs.transport.electric_car_km || 0;
+    DOM.calcTransit.value = inputs.transport.public_transit_km || 0;
+    DOM.calcFlight.value = inputs.transport.flight_km || 0;
     
-    document.getElementById('calc-grid-kwh').value = inputs.energy.grid_kwh || 0;
-    document.getElementById('calc-clean-kwh').value = inputs.energy.clean_kwh || 0;
+    DOM.calcGridKwh.value = inputs.energy.grid_kwh || 0;
+    DOM.calcCleanKwh.value = inputs.energy.clean_kwh || 0;
     
-    document.getElementById('calc-diet').value = inputs.food.diet || 'balanced';
-    document.getElementById('calc-shopping').value = inputs.consumption.shopping_habit || 'average_shopper';
+    DOM.calcDiet.value = inputs.food.diet || 'balanced';
+    DOM.calcShopping.value = inputs.consumption.shopping_habit || 'average_shopper';
 }
 
 function setupDashboardListeners() {
     // Calculator Submit handler
-    document.getElementById('form-calculator').addEventListener('submit', async (e) => {
+    DOM.formCalculator.addEventListener('submit', async (e) => {
         e.preventDefault();
         
         const payload = {
             transport: {
-                gas_car_km: parseFloat(document.getElementById('calc-gas-car').value) || 0.0,
-                electric_car_km: parseFloat(document.getElementById('calc-electric-car').value) || 0.0,
-                public_transit_km: parseFloat(document.getElementById('calc-transit').value) || 0.0,
-                flight_km: parseFloat(document.getElementById('calc-flight').value) || 0.0
+                gas_car_km: parseFloat(DOM.calcGasCar.value) || 0.0,
+                electric_car_km: parseFloat(DOM.calcElectricCar.value) || 0.0,
+                public_transit_km: parseFloat(DOM.calcTransit.value) || 0.0,
+                flight_km: parseFloat(DOM.calcFlight.value) || 0.0
             },
             energy: {
-                grid_kwh: parseFloat(document.getElementById('calc-grid-kwh').value) || 0.0,
-                clean_kwh: parseFloat(document.getElementById('calc-clean-kwh').value) || 0.0
+                grid_kwh: parseFloat(DOM.calcGridKwh.value) || 0.0,
+                clean_kwh: parseFloat(DOM.calcCleanKwh.value) || 0.0
             },
             food: {
-                diet: document.getElementById('calc-diet').value
+                diet: DOM.calcDiet.value
             },
             consumption: {
-                shopping_habit: document.getElementById('calc-shopping').value
+                shopping_habit: DOM.calcShopping.value
             }
         };
 
@@ -354,7 +456,7 @@ function setupDashboardListeners() {
     });
 
     // Refresh Coach Insights
-    document.getElementById('btn-refresh-coach').addEventListener('click', () => {
+    DOM.btnRefreshCoach.addEventListener('click', () => {
         loadCoachInsights();
     });
 
@@ -387,9 +489,8 @@ async function loadChartAndPredictions() {
                 predictions = predResponse.data;
                 
                 // Show prediction details box
-                const panel = document.getElementById('prediction-panel');
-                panel.classList.remove('hidden');
-                document.getElementById('lbl-prediction-text').textContent = predictions.reasoning;
+                DOM.predictionPanel.classList.remove('hidden');
+                DOM.predictionText.textContent = predictions.reasoning;
             }
         } catch (e) {
             console.warn("Prediction load failed:", e);
@@ -404,11 +505,8 @@ async function loadChartAndPredictions() {
 
 // --- COACH & PLANNER LOGICS ---
 async function loadCoachInsights() {
-    const loader = document.getElementById('coach-insights-loading');
-    const panel = document.getElementById('coach-content-panel');
-    
-    loader.classList.remove('hidden');
-    panel.classList.add('hidden');
+    DOM.coachLoader.classList.remove('hidden');
+    DOM.coachPanel.classList.add('hidden');
     
     try {
         const response = await CarbonWiseAPI.getCoachInsights();
@@ -418,8 +516,8 @@ async function loadCoachInsights() {
     } catch (e) {
         console.error("Failed to fetch coach insights:", e);
     } finally {
-        loader.classList.add('hidden');
-        panel.classList.remove('hidden');
+        DOM.coachLoader.classList.add('hidden');
+        DOM.coachPanel.classList.remove('hidden');
     }
 }
 
@@ -451,14 +549,6 @@ async function handleCompleteGoal(goalTitle, carbonSaved) {
 
 // --- INTERACTIVE SIMULATOR MANAGER ---
 function setupSimulatorListeners() {
-    const transitSlider = document.getElementById('sim-transit');
-    const dietSlider = document.getElementById('sim-diet');
-    const energySlider = document.getElementById('sim-energy');
-    
-    const transitLbl = document.getElementById('lbl-sim-transit');
-    const dietLbl = document.getElementById('lbl-sim-diet');
-    const energyLbl = document.getElementById('lbl-sim-energy');
-
     // Debounced simulator execution
     const runSimulation = debounce(async () => {
         if (!latestCalculation || !latestCalculation.inputs) {
@@ -466,9 +556,9 @@ function setupSimulatorListeners() {
         }
 
         const payload = {
-            public_transit_shift: parseFloat(transitSlider.value),
-            meat_reduction: parseFloat(dietSlider.value),
-            clean_energy_shift: parseFloat(energySlider.value),
+            public_transit_shift: parseFloat(DOM.simTransit.value),
+            meat_reduction: parseFloat(DOM.simDiet.value),
+            clean_energy_shift: parseFloat(DOM.simEnergy.value),
             base_footprint: latestCalculation.inputs
         };
 
@@ -478,9 +568,9 @@ function setupSimulatorListeners() {
                 const results = response.data;
                 
                 // Update slider outputs UI
-                document.getElementById('lbl-sim-projected').textContent = `${results.projected_emissions.total} kg`;
-                document.getElementById('lbl-sim-reduction').textContent = `${results.potential_reduction_kg} kg (${results.potential_reduction_pct}%)`;
-                document.getElementById('lbl-sim-score').textContent = `${results.projected_score} / 100`;
+                DOM.simProjected.textContent = `${results.projected_emissions.total} kg`;
+                DOM.simReduction.textContent = `${results.potential_reduction_kg} kg (${results.potential_reduction_pct}%)`;
+                DOM.simScore.textContent = `${results.projected_score} / 100`;
                 
                 // Rerender Chart.js line with custom simulation projections overlay!
                 const historyResponse = await CarbonWiseAPI.getHistory();
@@ -504,18 +594,18 @@ function setupSimulatorListeners() {
     }, 250); // 250ms debounce threshold to save bandwidth and API limits
 
     // Handle instant UI text changes and trigger debounced API calls
-    transitSlider.addEventListener('input', (e) => {
-        transitLbl.textContent = `${e.target.value}%`;
+    DOM.simTransit.addEventListener('input', (e) => {
+        DOM.simTransitLbl.textContent = `${e.target.value}%`;
         runSimulation();
     });
 
-    dietSlider.addEventListener('input', (e) => {
-        dietLbl.textContent = `${e.target.value}%`;
+    DOM.simDiet.addEventListener('input', (e) => {
+        DOM.simDietLbl.textContent = `${e.target.value}%`;
         runSimulation();
     });
 
-    energySlider.addEventListener('input', (e) => {
-        energyLbl.textContent = `${e.target.value}%`;
+    DOM.simEnergy.addEventListener('input', (e) => {
+        DOM.simEnergyLbl.textContent = `${e.target.value}%`;
         runSimulation();
     });
 }
