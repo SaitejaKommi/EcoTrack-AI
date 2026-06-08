@@ -1,0 +1,14 @@
+.env
+.env.*
+venv/
+.venv/
+**pycache**/
+.pytest_cache/
+.coverage
+htmlcov/
+node_modules/
+*.log
+*.db
+*.sqlite
+service-account.json
+credentials.json
