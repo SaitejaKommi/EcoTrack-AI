@@ -1,0 +1,367 @@
+{
+  "users": [
+    {
+      "username": "tester",
+      "email": "test@carbonwise.com",
+      "password_hash": "scrypt:32768:8:1$3ppzoIeuqktu58E0$ac19017d3c8ed6947db981370c28549f63e522783484b15fa87bf832d5c6b288e3287d396518411f8890f5c73fbabf3254d592060c5fabb60e5339923e520458",
+      "created_at": "2026-06-08T17:35:46.483472",
+      "badges": [],
+      "streak": 0,
+      "last_active_date": null,
+      "_id": "1"
+    },
+    {
+      "username": "streak_tester",
+      "email": "streak@carbonwise.com",
+      "password_hash": "scrypt:32768:8:1$TheWiq8nFuiFln47$84919a574498dc24cae7882c97d1609a7d1585abbb236b608fa20eaf87c48c113ecb1adbfe7912b12deaef68c204d01432f881ab5f228894d9e5291a4e5a9baa",
+      "created_at": "2026-06-08T17:35:47.272654",
+      "badges": [],
+      "streak": 1,
+      "last_active_date": "2026-06-08",
+      "_id": "2"
+    },
+    {
+      "$push": {
+        "badges": {
+          "badge_id": "green_diet",
+          "title": "Meatless Maestro",
+          "description": "Adopt a vegetarian or vegan lifestyle for lower carbon food footprint.",
+          "icon": "egg-fried",
+          "awarded_at": "2026-06-08T17:35:47.611784"
+        }
+      }
+    },
+    {
+      "username": "tester1",
+      "email": "test1@carbonwise.com",
+      "password_hash": "scrypt:32768:8:1$l2OL7uVbDZ7sHZkr$bd0c7595098a4547e7ab80e15157663cb4e49387cd2c2c589b78796d563bbf21f30c2239431a14601b27b374dc4059f57fe627ccd2e0eeb3d5e440c385b702b0",
+      "created_at": "2026-06-08T17:36:07.923147",
+      "badges": [],
+      "streak": 0,
+      "last_active_date": null,
+      "_id": "4"
+    },
+    {
+      "$push": {
+        "badges": {
+          "badge_id": "green_diet",
+          "title": "Meatless Maestro",
+          "description": "Adopt a vegetarian or vegan lifestyle for lower carbon food footprint.",
+          "icon": "egg-fried",
+          "awarded_at": "2026-06-08T17:36:09.599270"
+        }
+      }
+    },
+    {
+      "username": "Sai",
+      "email": "sai.24bcs10337@sst.scaler.com",
+      "password_hash": "scrypt:32768:8:1$MPTgNyBotkBnLBHT$9a3d0240cb18a0d817c7f336cd5dbafc040b544ec89f6eb3535310abfd8627d6904051980e2273a8350369470e2db89de328dff5748896bad55ada413df05a16",
+      "created_at": "2026-06-08T18:00:27.652938",
+      "badges": [],
+      "streak": 0,
+      "last_active_date": null,
+      "_id": "6"
+    }
+  ],
+  "calculations": [
+    {
+      "user_id": "3",
+      "inputs": {
+        "transport": {
+          "gas_car_km": 500.0,
+          "electric_car_km": 0.0,
+          "public_transit_km": 0.0,
+          "flight_km": 0.0
+        },
+        "energy": {
+          "grid_kwh": 200.0,
+          "clean_kwh": 0.0
+        },
+        "food": {
+          "diet": "vegan"
+        },
+        "consumption": {
+          "shopping_habit": "average_shopper"
+        }
+      },
+      "emissions": {
+        "transport": 110.0,
+        "energy": 95.0,
+        "food": 36.0,
+        "consumption": 75.0,
+        "total": 316.0
+      },
+      "eco_score": 87.09,
+      "category_scores": {
+        "transport": 87.78,
+        "energy": 86.43,
+        "food": 92.8,
+        "consumption": 79.17
+      },
+      "created_at": "2026-06-08T17:35:47.631858",
+      "_id": "1"
+    },
+    {
+      "user_id": "3",
+      "inputs": {
+        "transport": {
+          "gas_car_km": 500.0,
+          "electric_car_km": 0.0,
+          "public_transit_km": 0.0,
+          "flight_km": 0.0
+        },
+        "energy": {
+          "grid_kwh": 200.0,
+          "clean_kwh": 0.0
+        },
+        "food": {
+          "diet": "vegan"
+        },
+        "consumption": {
+          "shopping_habit": "average_shopper"
+        }
+      },
+      "emissions": {
+        "transport": 110.0,
+        "energy": 95.0,
+        "food": 36.0,
+        "consumption": 75.0,
+        "total": 316.0
+      },
+      "eco_score": 87.09,
+      "category_scores": {
+        "transport": 87.78,
+        "energy": 86.43,
+        "food": 92.8,
+        "consumption": 79.17
+      },
+      "created_at": "2026-06-08T17:35:47.649391",
+      "_id": "2"
+    },
+    {
+      "user_id": "user123",
+      "inputs": {
+        "transport": {
+          "gas_car_km": 150.0,
+          "electric_car_km": 50.0,
+          "public_transit_km": 200.0,
+          "flight_km": 0.0
+        },
+        "energy": {
+          "grid_kwh": 300.0,
+          "clean_kwh": 50.0
+        },
+        "food": {
+          "diet": "balanced"
+        },
+        "consumption": {
+          "shopping_habit": "average_shopper"
+        }
+      },
+      "emissions": {
+        "transport": 43.5,
+        "energy": 143.5,
+        "food": 135.0,
+        "consumption": 75.0,
+        "total": 397.0
+      },
+      "eco_score": 83.63,
+      "category_scores": {
+        "transport": 95.17,
+        "energy": 79.5,
+        "food": 73.0,
+        "consumption": 79.17
+      },
+      "created_at": "2026-06-08T17:36:08.181058",
+      "_id": "3"
+    },
+    {
+      "user_id": "user123",
+      "inputs": {
+        "transport": {
+          "gas_car_km": 10.0,
+          "electric_car_km": 0.0,
+          "public_transit_km": 0.0,
+          "flight_km": 0.0
+        },
+        "energy": {
+          "grid_kwh": 10.0,
+          "clean_kwh": 0.0
+        },
+        "food": {
+          "diet": "vegetarian"
+        },
+        "consumption": {
+          "shopping_habit": "minimalist"
+        }
+      },
+      "emissions": {
+        "transport": 2.2,
+        "energy": 4.75,
+        "food": 72.0,
+        "consumption": 15.0,
+        "total": 93.95
+      },
+      "eco_score": 96.21,
+      "category_scores": {
+        "transport": 99.76,
+        "energy": 99.32,
+        "food": 85.6,
+        "consumption": 95.83
+      },
+      "created_at": "2026-06-08T17:36:08.678997",
+      "_id": "4"
+    },
+    {
+      "user_id": "5",
+      "inputs": {
+        "transport": {
+          "gas_car_km": 500.0,
+          "electric_car_km": 0.0,
+          "public_transit_km": 0.0,
+          "flight_km": 0.0
+        },
+        "energy": {
+          "grid_kwh": 200.0,
+          "clean_kwh": 0.0
+        },
+        "food": {
+          "diet": "vegan"
+        },
+        "consumption": {
+          "shopping_habit": "average_shopper"
+        }
+      },
+      "emissions": {
+        "transport": 110.0,
+        "energy": 95.0,
+        "food": 36.0,
+        "consumption": 75.0,
+        "total": 316.0
+      },
+      "eco_score": 87.09,
+      "category_scores": {
+        "transport": 87.78,
+        "energy": 86.43,
+        "food": 92.8,
+        "consumption": 79.17
+      },
+      "created_at": "2026-06-08T17:36:09.635176",
+      "_id": "5"
+    },
+    {
+      "user_id": "5",
+      "inputs": {
+        "transport": {
+          "gas_car_km": 500.0,
+          "electric_car_km": 0.0,
+          "public_transit_km": 0.0,
+          "flight_km": 0.0
+        },
+        "energy": {
+          "grid_kwh": 200.0,
+          "clean_kwh": 0.0
+        },
+        "food": {
+          "diet": "vegan"
+        },
+        "consumption": {
+          "shopping_habit": "average_shopper"
+        }
+      },
+      "emissions": {
+        "transport": 110.0,
+        "energy": 95.0,
+        "food": 36.0,
+        "consumption": 75.0,
+        "total": 316.0
+      },
+      "eco_score": 87.09,
+      "category_scores": {
+        "transport": 87.78,
+        "energy": 86.43,
+        "food": 92.8,
+        "consumption": 79.17
+      },
+      "created_at": "2026-06-08T17:36:09.695638",
+      "_id": "6"
+    }
+  ],
+  "goals": [],
+  "analytics": [
+    {
+      "user_id": "analyt_123",
+      "event_type": "calculator_submitted",
+      "metadata": {
+        "score": 75.0
+      },
+      "timestamp": "2026-06-08T17:35:47.665825",
+      "_id": "1"
+    },
+    {
+      "user_id": "analyt_123",
+      "event_type": "goal_completed",
+      "metadata": {
+        "carbon_saved_kg": 15.5
+      },
+      "timestamp": "2026-06-08T17:35:47.695764",
+      "_id": "2"
+    },
+    {
+      "user_id": "analyt_123",
+      "event_type": "goal_completed",
+      "metadata": {
+        "carbon_saved_kg": 4.5
+      },
+      "timestamp": "2026-06-08T17:35:47.733056",
+      "_id": "3"
+    },
+    {
+      "user_id": "user123",
+      "event_type": "calculator_submitted",
+      "metadata": {
+        "total_emissions_kg": 397.0,
+        "score": 83.63
+      },
+      "timestamp": "2026-06-08T17:36:08.184158",
+      "_id": "4"
+    },
+    {
+      "user_id": "user123",
+      "event_type": "calculator_submitted",
+      "metadata": {
+        "total_emissions_kg": 93.95,
+        "score": 96.21
+      },
+      "timestamp": "2026-06-08T17:36:08.684535",
+      "_id": "5"
+    },
+    {
+      "user_id": "analyt_123",
+      "event_type": "calculator_submitted",
+      "metadata": {
+        "score": 75.0
+      },
+      "timestamp": "2026-06-08T17:36:09.739522",
+      "_id": "6"
+    },
+    {
+      "user_id": "analyt_123",
+      "event_type": "goal_completed",
+      "metadata": {
+        "carbon_saved_kg": 15.5
+      },
+      "timestamp": "2026-06-08T17:36:09.790865",
+      "_id": "7"
+    },
+    {
+      "user_id": "analyt_123",
+      "event_type": "goal_completed",
+      "metadata": {
+        "carbon_saved_kg": 4.5
+      },
+      "timestamp": "2026-06-08T17:36:09.827182",
+      "_id": "8"
+    }
+  ]
+}
