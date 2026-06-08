@@ -158,8 +158,8 @@ The application supports the following environment configurations:
 *   **Carbon Emission Coefficients**:
     *   Gasoline vehicle transit: `0.220 kg CO2e / km`
     *   Electric vehicle (EV) transit: `0.050 kg CO2e / km`
-    *   Public transit: `0.080 kg CO2e / km`
-    *   Flight travel: `0.150 kg CO2e / km`
+    *   Public transit: `0.040 kg CO2e / km`
+    *   Flight travel: `0.180 kg CO2e / km`
     *   Grid electricity loads: `0.475 kg CO2e / kWh`
     *   Clean/Solar power: `0.020 kg CO2e / kWh`
 *   **Eco Score Scaling**: Score ranges from 0 to 100. A score of 50 represents the national/regional average baseline carbon footprint. Scores higher than 50 indicate a lower footprint (greener lifestyle), while scores below 50 reflect higher emissions than average.

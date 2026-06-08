@@ -22,7 +22,7 @@ os.environ['MONGO_URI'] = '' # Forces mock fallback
 os.environ['GEMINI_API_KEY'] = '' # Forces mock fallback
 
 from app import create_app
-from app.db import JSONDatabaseMock
+from app.utils.db_mock import JSONDatabaseMock
 
 @pytest.fixture(scope="session")
 def app():

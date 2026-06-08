@@ -7,7 +7,8 @@ and all branches of local AI coaching advice generators.
 import pytest
 from unittest.mock import patch, MagicMock
 from pymongo.errors import ConnectionFailure
-from app.db import get_db, JSONDatabaseMock
+from app.db import get_db
+from app.utils.db_mock import JSONDatabaseMock
 from app.services.gemini_service import GeminiService
 from app.config import Config
 
