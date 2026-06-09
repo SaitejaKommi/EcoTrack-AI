@@ -1,15 +1,44 @@
 /**
- * CarbonWise Main Application Controller
- * Handles view routers, form submits, interactive sliders, and accessibility setups.
+ * @fileoverview CarbonWise Main Application Controller.
+ *
+ * Bootstraps the single-page application, manages shared client state,
+ * routes between the authentication and dashboard views, and wires all
+ * user interaction event listeners. Delegates DOM manipulation to
+ * {@link CarbonWiseUI}, network calls to {@link CarbonWiseAPI}, and chart
+ * rendering to {@link CarbonWiseCharts}.
+ *
+ * Module responsibilities:
+ *  - One-time initialisation of DOM cache, accessibility controls, and listeners.
+ *  - Session check on load — redirect to dashboard if already authenticated.
+ *  - Orchestration of the full dashboard data-loading sequence.
+ *  - Simulator debounce, coach refresh, and goal completion handlers.
+ *
+ * Constants sourced from {@link app/constants.py}:
+ *  - {@code SIMULATOR_DEBOUNCE_MS} = 250 — anti-flooding delay on sliders.
+ *  - {@code GOAL_CARBON_HIGH_IMPACT} = 25, MEDIUM = 12, LOW = 5 — savings estimates.
  */
 
-// Shared client state
+// ── Shared Client State ─────────────────────────────────────────────────────
+
+/** @type {Object|null} Authenticated user profile document from the server. */
 let currentUser = null;
+
+/** @type {Object|null} Most recent calculation document for simulator use. */
 let latestCalculation = null;
+
+/** @type {Object} Current action plan data keyed by schedule type. */
 let currentActionPlan = {};
+
+/** @type {string} Currently active plan schedule tab identifier. */
 let activePlanTab = 'daily';
 
-// Badges config duplicate for UI rendering lookup matching backend constants
+// ── UI Badge Config (mirrors backend BADGE_CONFIGS constant) ─────────────────
+
+/**
+ * Badge display configuration duplicated from the server constants for
+ * client-side rendering. Must stay in sync with {@code app/constants.py}.
+ * @type {Object.<string, {title: string, description: string, icon: string}>}
+ */
 const BADGE_CONFIGS = {
     "transit_hero": {
         "title": "Transit Pioneer",
@@ -38,7 +67,15 @@ const BADGE_CONFIGS = {
     }
 };
 
-// Centralized DOM caching namespace to eliminate duplicate queries
+// ── DOM Cache ────────────────────────────────────────────────────────────────
+
+/**
+ * Centralised DOM reference cache — eliminates repeated {@code getElementById}
+ * queries across event handlers. All references are populated once during
+ * {@link DOM.init} and reused for the lifetime of the page.
+ *
+ * @namespace DOM
+ */
 const DOM = {
     viewAuth: null,
     viewDashboard: null,
@@ -72,8 +109,8 @@ const DOM = {
     predictionText: null,
     coachLoader: null,
     coachPanel: null,
-    
-    // Inputs
+
+    // Calculator inputs
     calcGasCar: null,
     calcElectricCar: null,
     calcTransit: null,
@@ -82,8 +119,8 @@ const DOM = {
     calcCleanKwh: null,
     calcDiet: null,
     calcShopping: null,
-    
-    // Simulator
+
+    // Simulator controls and labels
     simTransit: null,
     simDiet: null,
     simEnergy: null,
@@ -93,7 +130,13 @@ const DOM = {
     simProjected: null,
     simReduction: null,
     simScore: null,
-    
+
+    /**
+     * Populate all DOM references from the live document.
+     * Must be called once after {@code DOMContentLoaded} fires.
+     *
+     * @returns {void}
+     */
     init() {
         this.viewAuth = document.getElementById('view-auth');
         this.viewDashboard = document.getElementById('view-dashboard');
@@ -127,7 +170,7 @@ const DOM = {
         this.predictionText = document.getElementById('lbl-prediction-text');
         this.coachLoader = document.getElementById('coach-insights-loading');
         this.coachPanel = document.getElementById('coach-content-panel');
-        
+
         this.calcGasCar = document.getElementById('calc-gas-car');
         this.calcElectricCar = document.getElementById('calc-electric-car');
         this.calcTransit = document.getElementById('calc-transit');
@@ -136,7 +179,7 @@ const DOM = {
         this.calcCleanKwh = document.getElementById('calc-clean-kwh');
         this.calcDiet = document.getElementById('calc-diet');
         this.calcShopping = document.getElementById('calc-shopping');
-        
+
         this.simTransit = document.getElementById('sim-transit');
         this.simDiet = document.getElementById('sim-diet');
         this.simEnergy = document.getElementById('sim-energy');
@@ -149,12 +192,47 @@ const DOM = {
     }
 };
 
+// ── Application Constants ────────────────────────────────────────────────────
+
+/** Debounce delay in ms for simulator API calls (mirrors SIMULATOR_DEBOUNCE_MS). */
+const SIMULATOR_DEBOUNCE_MS = 250;
+
+/** Font size step percentage per button press (mirrors FONT_SIZE_STEP_PCT). */
+const FONT_SIZE_STEP_PCT = 10;
+
+/** Maximum font size as a percentage of default (mirrors FONT_SIZE_MAX_PCT). */
+const FONT_SIZE_MAX_PCT = 140;
+
+/** Minimum font size as a percentage of default (mirrors FONT_SIZE_MIN_PCT). */
+const FONT_SIZE_MIN_PCT = 80;
+
+/** Default font size percentage (mirrors FONT_SIZE_DEFAULT_PCT). */
+const FONT_SIZE_DEFAULT_PCT = 100;
+
+/** Estimated carbon saved for completing a high-impact goal (kg CO2e). */
+const GOAL_CARBON_HIGH_IMPACT = 25.0;
+
+/** Estimated carbon saved for completing a medium-impact goal (kg CO2e). */
+const GOAL_CARBON_MEDIUM_IMPACT = 12.0;
+
+/** Estimated carbon saved for completing a low-impact goal (kg CO2e). */
+const GOAL_CARBON_LOW_IMPACT = 5.0;
+
+// ── Initialisation ───────────────────────────────────────────────────────────
+
 document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
 /**
- * Bootstraps the application state and event handlers.
+ * Bootstrap the application: initialise DOM cache, attach event listeners,
+ * and check whether the user already has an active session.
+ *
+ * Runs once after the DOM is fully parsed. Redirects to the dashboard view
+ * immediately when an authenticated session cookie is detected.
+ *
+ * @async
+ * @returns {Promise<void>}
  */
 async function initApp() {
     DOM.init();
@@ -163,8 +241,9 @@ async function initApp() {
     setupAuthListeners();
     setupDashboardListeners();
     setupSimulatorListeners();
-    
-    // Check if user is already authenticated
+
+    // Attempt session validation — if the cookie is still live the server
+    // will return the profile and we can skip the login screen entirely
     try {
         const response = await CarbonWiseAPI.getProfile();
         if (response && response.data) {
@@ -173,17 +252,30 @@ async function initApp() {
             showAuthView();
         }
     } catch (e) {
+        // 401 expected when no session exists — show auth view silently
         showAuthView();
     }
 }
 
-// --- VIEW CONTROLLERS ---
+// ── View Controllers ─────────────────────────────────────────────────────────
+
+/**
+ * Display the authentication panel and hide the dashboard.
+ *
+ * @returns {void}
+ */
 function showAuthView() {
     DOM.viewAuth.classList.remove('hidden');
     DOM.viewDashboard.classList.add('hidden');
     DOM.userGreeting.textContent = 'Welcome, Guest';
 }
 
+/**
+ * Display the dashboard and hide the authentication panel.
+ * Updates the greeting label with the authenticated user's display name.
+ *
+ * @returns {void}
+ */
 function showDashboardView() {
     DOM.viewAuth.classList.add('hidden');
     DOM.viewDashboard.classList.remove('hidden');
@@ -192,36 +284,48 @@ function showDashboardView() {
     }
 }
 
-// --- ACCESSIBILITY CONFIGURATION ---
+// ── Accessibility Controls ───────────────────────────────────────────────────
+
+/**
+ * Attach accessibility preference controls and restore saved preferences from
+ * {@code localStorage} on page load.
+ *
+ * Handles:
+ *  - High-contrast mode toggle (persisted as {@code "contrast"}).
+ *  - Reduced-motion mode toggle (persisted as {@code "motion"}).
+ *  - Font size increase / decrease / reset (persisted as {@code "fontSizePct"}).
+ *
+ * @returns {void}
+ */
 function setupAccessibilityControls() {
-    // Load user preferences from local storage
+    // Restore high-contrast preference from a previous session
     if (localStorage.getItem('contrast') === 'enabled') {
         document.body.classList.add('high-contrast');
         DOM.contrastBtn.setAttribute('aria-pressed', 'true');
     }
-    
+
+    // Restore reduced-motion preference from a previous session
     if (localStorage.getItem('motion') === 'reduced') {
         document.body.classList.add('reduced-motion');
         DOM.motionBtn.setAttribute('aria-pressed', 'true');
     }
 
-    let fontSizePct = parseInt(localStorage.getItem('fontSizePct')) || 100;
+    // Restore font-size preference — default to 100% when absent
+    let fontSizePct = parseInt(localStorage.getItem('fontSizePct')) || FONT_SIZE_DEFAULT_PCT;
     document.documentElement.style.fontSize = `${fontSizePct}%`;
 
-    // Contrast Toggle
     DOM.contrastBtn.addEventListener('click', () => {
         const active = document.body.classList.toggle('high-contrast');
         DOM.contrastBtn.setAttribute('aria-pressed', active ? 'true' : 'false');
         localStorage.setItem('contrast', active ? 'enabled' : 'disabled');
         CarbonWiseUI.announce(`High contrast mode ${active ? 'enabled' : 'disabled'}.`);
-        
-        // Re-render chart to update theme grid colors
+
+        // Re-render chart with updated theme colours after toggling contrast
         if (latestCalculation) {
             loadChartAndPredictions();
         }
     });
 
-    // Motion Toggle
     DOM.motionBtn.addEventListener('click', () => {
         const active = document.body.classList.toggle('reduced-motion');
         DOM.motionBtn.setAttribute('aria-pressed', active ? 'true' : 'false');
@@ -229,10 +333,9 @@ function setupAccessibilityControls() {
         CarbonWiseUI.announce(`Reduced motion mode ${active ? 'enabled' : 'disabled'}.`);
     });
 
-    // Font Sizing
     DOM.fontInc.addEventListener('click', () => {
-        if (fontSizePct < 140) {
-            fontSizePct += 10;
+        if (fontSizePct < FONT_SIZE_MAX_PCT) {
+            fontSizePct += FONT_SIZE_STEP_PCT;
             document.documentElement.style.fontSize = `${fontSizePct}%`;
             localStorage.setItem('fontSizePct', fontSizePct);
             CarbonWiseUI.announce(`Text size increased to ${fontSizePct} percent.`);
@@ -240,8 +343,8 @@ function setupAccessibilityControls() {
     });
 
     DOM.fontDec.addEventListener('click', () => {
-        if (fontSizePct > 80) {
-            fontSizePct -= 10;
+        if (fontSizePct > FONT_SIZE_MIN_PCT) {
+            fontSizePct -= FONT_SIZE_STEP_PCT;
             document.documentElement.style.fontSize = `${fontSizePct}%`;
             localStorage.setItem('fontSizePct', fontSizePct);
             CarbonWiseUI.announce(`Text size decreased to ${fontSizePct} percent.`);
@@ -249,16 +352,23 @@ function setupAccessibilityControls() {
     });
 
     DOM.fontReset.addEventListener('click', () => {
-        fontSizePct = 100;
-        document.documentElement.style.fontSize = '100%';
+        fontSizePct = FONT_SIZE_DEFAULT_PCT;
+        document.documentElement.style.fontSize = `${FONT_SIZE_DEFAULT_PCT}%`;
         localStorage.setItem('fontSizePct', fontSizePct);
-        CarbonWiseUI.announce(`Text size reset to default.`);
+        CarbonWiseUI.announce('Text size reset to default.');
     });
 }
 
-// --- EVENT HANDLERS ---
+// ── Authentication Event Handlers ────────────────────────────────────────────
+
+/**
+ * Attach all authentication-related event listeners: tab switching, registration
+ * form submission, login form submission, and logout click.
+ *
+ * @returns {void}
+ */
 function setupAuthListeners() {
-    // Auth Tab switching
+    // Auth tab switch — show login panel
     DOM.tabLogin.addEventListener('click', () => {
         DOM.tabLogin.classList.add('active');
         DOM.tabLogin.setAttribute('aria-selected', 'true');
@@ -268,6 +378,7 @@ function setupAuthListeners() {
         DOM.panelRegister.classList.add('hidden');
     });
 
+    // Auth tab switch — show registration panel
     DOM.tabRegister.addEventListener('click', () => {
         DOM.tabRegister.classList.add('active');
         DOM.tabRegister.setAttribute('aria-selected', 'true');
@@ -277,19 +388,19 @@ function setupAuthListeners() {
         DOM.panelLogin.classList.add('hidden');
     });
 
-    // Form Sign Up submit
+    // Registration form — validate fields and submit to server
     DOM.formRegister.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
-        // Reset warnings
+
+        // Clear any previous field-level error messages
         DOM.errRegUsername.textContent = '';
         DOM.errRegEmail.textContent = '';
         DOM.errRegPassword.textContent = '';
-        
+
         const username = DOM.regUsername.value;
         const email = DOM.regEmail.value;
         const password = DOM.regPassword.value;
-        
+
         try {
             await CarbonWiseAPI.register(username, email, password);
             CarbonWiseUI.announce("Registration successful. Please log in with your credentials.");
@@ -297,6 +408,7 @@ function setupAuthListeners() {
             DOM.tabLogin.click();
         } catch (err) {
             const msg = err.message || "Registration failed.";
+            // Route the error message to the relevant field error label
             if (msg.toLowerCase().includes("username")) {
                 DOM.errRegUsername.textContent = msg;
             } else if (msg.toLowerCase().includes("email")) {
@@ -307,16 +419,16 @@ function setupAuthListeners() {
         }
     });
 
-    // Form Login submit
+    // Login form — authenticate and transition to dashboard
     DOM.formLogin.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
+
         DOM.errLoginEmail.textContent = '';
         DOM.errLoginPassword.textContent = '';
-        
+
         const email = DOM.loginEmail.value;
         const password = DOM.loginPassword.value;
-        
+
         try {
             const response = await CarbonWiseAPI.login(email, password);
             if (response && response.data) {
@@ -324,6 +436,8 @@ function setupAuthListeners() {
             }
         } catch (err) {
             const msg = err.message || "Login failed.";
+            // Route the error to the password field for bad credentials,
+            // and to the email field for everything else
             if (msg.toLowerCase().includes("password")) {
                 DOM.errLoginPassword.textContent = msg;
             } else {
@@ -332,29 +446,52 @@ function setupAuthListeners() {
         }
     });
 
-    // Logout click
+    // Logout — clear local state and return to auth view
     DOM.btnLogout.addEventListener('click', async () => {
         try {
             await CarbonWiseAPI.logout();
-        } catch (e) {}
+        } catch (e) {
+            // Ignore network errors on logout — clear local state regardless
+        }
         currentUser = null;
         latestCalculation = null;
         showAuthView();
     });
 }
 
+/**
+ * Handle a successful authentication event by updating shared state and
+ * loading the dashboard.
+ *
+ * @param {Object} user - Authenticated user profile document from the server.
+ * @returns {void}
+ */
 function handleLoginSuccess(user) {
     currentUser = user;
     showDashboardView();
     loadDashboardData();
 }
 
+// ── Dashboard Data Loading ───────────────────────────────────────────────────
+
 /**
- * Loads entire dashboard dataset asynchronously.
+ * Fetch and render the full dashboard dataset after authentication.
+ *
+ * Executes three sequential requests to avoid race conditions on the
+ * session-dependent endpoints:
+ *  1. Profile — streak count and earned badges.
+ *  2. Analytics summary — scorecard statistics.
+ *  3. History — most recent footprint entry plus chart data.
+ *
+ * When history is present, also triggers coach insights and action plan
+ * loading in parallel.
+ *
+ * @async
+ * @returns {Promise<void>}
  */
 async function loadDashboardData() {
     try {
-        // 1. Get user profile details for current streak / badges
+        // 1. Refresh profile for current streak count and badge list
         const profileResponse = await CarbonWiseAPI.getProfile();
         if (profileResponse && profileResponse.data) {
             currentUser = profileResponse.data;
@@ -362,33 +499,31 @@ async function loadDashboardData() {
             CarbonWiseUI.updateBadges(currentUser.badges, BADGE_CONFIGS);
         }
 
-        // 2. Get telemetry metrics
+        // 2. Load telemetry scorecard statistics
         const teleResponse = await CarbonWiseAPI.getTelemetrySummary();
         if (teleResponse && teleResponse.data) {
             CarbonWiseUI.updateAnalyticsSummary(teleResponse.data);
         }
 
-        // 3. Get footprint history
+        // 3. Load history and drive subsequent chart and coach rendering
         const historyResponse = await CarbonWiseAPI.getHistory();
         const history = historyResponse.data || [];
-        
+
         if (history.length > 0) {
             latestCalculation = history[0];
-            
-            // Populate form controls with latest inputs
-            populateCalculatorInputs(latestCalculation.inputs);
-            
-            // Update scores
-            CarbonWiseUI.updateScorecard(latestCalculation.eco_score, latestCalculation.category_scores);
-            
-            // Load charts & forecast lines
-            loadChartAndPredictions();
 
-            // Load coach recommendations & plans
+            // Pre-populate calculator form with the user's last submission
+            populateCalculatorInputs(latestCalculation.inputs);
+
+            CarbonWiseUI.updateScorecard(latestCalculation.eco_score, latestCalculation.category_scores);
+
+            // Chart + prediction and coach + plan can run concurrently since
+            // they do not depend on each other's results
+            loadChartAndPredictions();
             loadCoachInsights();
             loadActionPlan();
         } else {
-            // Empty state scorecard
+            // First-time user — show the empty-state scorecard
             CarbonWiseUI.updateScorecard(null, {});
         }
     } catch (e) {
@@ -396,26 +531,45 @@ async function loadDashboardData() {
     }
 }
 
+/**
+ * Populate the calculator form inputs with values from a previous submission.
+ *
+ * Allows users to review and adjust their last reported values rather than
+ * starting from zero each time they open the calculator.
+ *
+ * @param {Object} inputs - Previous calculator input document from the server,
+ *   containing {@code transport}, {@code energy}, {@code food}, and
+ *   {@code consumption} sub-objects.
+ * @returns {void}
+ */
 function populateCalculatorInputs(inputs) {
     if (!inputs) return;
-    
+
     DOM.calcGasCar.value = inputs.transport.gas_car_km || 0;
     DOM.calcElectricCar.value = inputs.transport.electric_car_km || 0;
     DOM.calcTransit.value = inputs.transport.public_transit_km || 0;
     DOM.calcFlight.value = inputs.transport.flight_km || 0;
-    
+
     DOM.calcGridKwh.value = inputs.energy.grid_kwh || 0;
     DOM.calcCleanKwh.value = inputs.energy.clean_kwh || 0;
-    
+
     DOM.calcDiet.value = inputs.food.diet || 'balanced';
     DOM.calcShopping.value = inputs.consumption.shopping_habit || 'average_shopper';
 }
 
+// ── Dashboard Event Listeners ────────────────────────────────────────────────
+
+/**
+ * Attach event listeners for dashboard interactions: calculator form submission,
+ * coach refresh button, and action plan tab switching.
+ *
+ * @returns {void}
+ */
 function setupDashboardListeners() {
-    // Calculator Submit handler
     DOM.formCalculator.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
+
+        // Build the payload from cached DOM references for efficiency
         const payload = {
             transport: {
                 gas_car_km: parseFloat(DOM.calcGasCar.value) || 0.0,
@@ -427,12 +581,8 @@ function setupDashboardListeners() {
                 grid_kwh: parseFloat(DOM.calcGridKwh.value) || 0.0,
                 clean_kwh: parseFloat(DOM.calcCleanKwh.value) || 0.0
             },
-            food: {
-                diet: DOM.calcDiet.value
-            },
-            consumption: {
-                shopping_habit: DOM.calcShopping.value
-            }
+            food: { diet: DOM.calcDiet.value },
+            consumption: { shopping_habit: DOM.calcShopping.value }
         };
 
         try {
@@ -440,14 +590,14 @@ function setupDashboardListeners() {
             if (response && response.data) {
                 latestCalculation = response.data;
                 CarbonWiseUI.announce("Footprint calculated successfully. Score and dashboard updating.");
-                
-                // Show badge alert modal if new achievements unlocked
+
+                // Notify the user about any newly unlocked badges
                 if (latestCalculation.newly_awarded_badges && latestCalculation.newly_awarded_badges.length > 0) {
                     const titles = latestCalculation.newly_awarded_badges.map(id => BADGE_CONFIGS[id].title).join(", ");
                     alert(`Congratulations! You unlocked new badges: ${titles}`);
                 }
-                
-                // Refresh dashboards
+
+                // Reload the entire dashboard to reflect updated scores and telemetry
                 loadDashboardData();
             }
         } catch (err) {
@@ -455,12 +605,11 @@ function setupDashboardListeners() {
         }
     });
 
-    // Refresh Coach Insights
     DOM.btnRefreshCoach.addEventListener('click', () => {
         loadCoachInsights();
     });
 
-    // Planner tab listeners
+    // Plan tab switching — update the active tab and re-render the action list
     const planTabs = ["daily", "weekly", "monthly"];
     planTabs.forEach(tab => {
         document.getElementById(`tab-plan-${tab}`).addEventListener('click', (e) => {
@@ -476,38 +625,57 @@ function setupDashboardListeners() {
     });
 }
 
-// --- CHARTS & PREDICTIONS INTERACTION ---
+// ── Charts & Predictions ─────────────────────────────────────────────────────
+
+/**
+ * Fetch historical footprint records and AI predictions, then render the
+ * combined dual-line chart.
+ *
+ * Prediction loading failures are suppressed with a warning since the chart
+ * can render historical data alone without the forecast overlay.
+ *
+ * @async
+ * @returns {Promise<void>}
+ */
 async function loadChartAndPredictions() {
     try {
         const historyResponse = await CarbonWiseAPI.getHistory();
         const history = historyResponse.data || [];
-        
+
         let predictions = null;
         try {
             const predResponse = await CarbonWiseAPI.getPredictions();
             if (predResponse && predResponse.data) {
                 predictions = predResponse.data;
-                
-                // Show prediction details box
+
+                // Show the AI reasoning panel when predictions are available
                 DOM.predictionPanel.classList.remove('hidden');
                 DOM.predictionText.textContent = predictions.reasoning;
             }
         } catch (e) {
-            console.warn("Prediction load failed:", e);
+            console.warn("Prediction load failed — rendering chart without forecast:", e);
         }
 
-        // Render dual lines chart
         CarbonWiseCharts.renderHistoryAndPrediction(history, predictions);
     } catch (e) {
         console.error("Failed to render history charts:", e);
     }
 }
 
-// --- COACH & PLANNER LOGICS ---
+// ── Coach & Planner ──────────────────────────────────────────────────────────
+
+/**
+ * Fetch and render personalised coaching insights, showing a loading spinner
+ * during the request.
+ *
+ * @async
+ * @returns {Promise<void>}
+ */
 async function loadCoachInsights() {
+    // Show spinner and hide stale content during the network request
     DOM.coachLoader.classList.remove('hidden');
     DOM.coachPanel.classList.add('hidden');
-    
+
     try {
         const response = await CarbonWiseAPI.getCoachInsights();
         if (response && response.data) {
@@ -516,11 +684,22 @@ async function loadCoachInsights() {
     } catch (e) {
         console.error("Failed to fetch coach insights:", e);
     } finally {
+        // Always hide spinner and reveal panel — even on error — so the UI
+        // does not appear stuck in a loading state
         DOM.coachLoader.classList.add('hidden');
         DOM.coachPanel.classList.remove('hidden');
     }
 }
 
+/**
+ * Fetch and store the structured action plan from the server.
+ *
+ * Stores the result in {@code currentActionPlan} and triggers an immediate
+ * render of the active schedule tab.
+ *
+ * @async
+ * @returns {Promise<void>}
+ */
 async function loadActionPlan() {
     try {
         const response = await CarbonWiseAPI.getActionPlan();
@@ -533,13 +712,24 @@ async function loadActionPlan() {
     }
 }
 
+/**
+ * Record a coaching goal as completed and refresh the dashboard statistics.
+ *
+ * Called from the goal card "Complete" button rendered by
+ * {@link CarbonWiseUI.updateCoachPanel}.
+ *
+ * @async
+ * @param {string} goalTitle - Display title of the completed goal.
+ * @param {number} carbonSaved - Estimated kg CO2e saved by completing the goal.
+ * @returns {Promise<void>}
+ */
 async function handleCompleteGoal(goalTitle, carbonSaved) {
     try {
         const response = await CarbonWiseAPI.completeGoal(goalTitle, carbonSaved);
         if (response && response.data) {
             CarbonWiseUI.announce(`Goal completed! Saved ${carbonSaved} kg of CO2.`);
-            
-            // Reload analytics and statistics
+
+            // Reload the dashboard to reflect updated goal count and savings total
             loadDashboardData();
         }
     } catch (e) {
@@ -547,9 +737,20 @@ async function handleCompleteGoal(goalTitle, carbonSaved) {
     }
 }
 
-// --- INTERACTIVE SIMULATOR MANAGER ---
+// ── Simulator ────────────────────────────────────────────────────────────────
+
+/**
+ * Attach input listeners to the three lifestyle simulator sliders.
+ *
+ * Each slider immediately updates its percentage label, then triggers a
+ * debounced API call ({@code SIMULATOR_DEBOUNCE_MS} ms) to avoid flooding
+ * the server during rapid drag operations.
+ *
+ * @returns {void}
+ */
 function setupSimulatorListeners() {
-    // Debounced simulator execution
+    // Debounced handler — waits SIMULATOR_DEBOUNCE_MS ms after the last slider
+    // movement before sending the API request
     const runSimulation = debounce(async () => {
         if (!latestCalculation || !latestCalculation.inputs) {
             return;
@@ -566,34 +767,33 @@ function setupSimulatorListeners() {
             const response = await CarbonWiseAPI.simulateScenario(payload);
             if (response && response.data) {
                 const results = response.data;
-                
-                // Update slider outputs UI
+
+                // Update the three result labels with the computed projection values
                 DOM.simProjected.textContent = `${results.projected_emissions.total} kg`;
                 DOM.simReduction.textContent = `${results.potential_reduction_kg} kg (${results.potential_reduction_pct}%)`;
                 DOM.simScore.textContent = `${results.projected_score} / 100`;
-                
-                // Rerender Chart.js line with custom simulation projections overlay!
+
+                // Fetch fresh history for the chart re-render
                 const historyResponse = await CarbonWiseAPI.getHistory();
                 const history = historyResponse.data || [];
-                
-                // Construct a mock prediction mapping the simulation project
+
+                // Construct a synthetic prediction that maps the simulation projection
+                // onto the chart's forecast line without requiring a separate AI call
                 const simulatedPredictions = {
                     projection_30_days: results.projected_emissions.total,
                     projection_90_days: results.projected_emissions.total,
                     reasoning: `Simulated path projections: Shifting habits lowers carbon output to ${results.projected_emissions.total} kg.`
                 };
-                
-                // Re-render chart incorporating simulation results
+
                 CarbonWiseCharts.renderHistoryAndPrediction(history, simulatedPredictions);
-                
                 CarbonWiseUI.announce(`Simulation recalculated: potential reduction of ${results.potential_reduction_kg} kilograms.`);
             }
         } catch (e) {
             console.error("Simulation request failed:", e);
         }
-    }, 250); // 250ms debounce threshold to save bandwidth and API limits
+    }, SIMULATOR_DEBOUNCE_MS);
 
-    // Handle instant UI text changes and trigger debounced API calls
+    // Each slider instantly updates its label text, then triggers the debounced API call
     DOM.simTransit.addEventListener('input', (e) => {
         DOM.simTransitLbl.textContent = `${e.target.value}%`;
         runSimulation();
